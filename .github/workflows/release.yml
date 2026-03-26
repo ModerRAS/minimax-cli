@@ -31,18 +31,11 @@ jobs:
           mkdir -p artifacts
           cp target/release/minimax artifacts/minimax-linux-x86_64
           tar czf minimax-cli-x86_64-unknown-linux-gnu.tar.gz -C artifacts minimax-linux-x86_64
-      - name: Build MUSL
-        run: |
-          rustup target add x86_64-unknown-linux-musl
-          cargo build --release --locked --target x86_64-unknown-linux-musl
-          cp target/x86_64-unknown-linux-musl/release/minimax artifacts/minimax-linux-x86_64-musl
-          tar czf minimax-cli-x86_64-unknown-linux-musl.tar.gz -C artifacts minimax-linux-x86_64-musl
-      - name: Upload Linux Assets
+      - name: Upload Linux Asset
         uses: softprops/action-gh-release@v1
         with:
           files: |
             minimax-cli-x86_64-unknown-linux-gnu.tar.gz
-            minimax-cli-x86_64-unknown-linux-musl.tar.gz
           draft: false
           prerelease: false
         env:
