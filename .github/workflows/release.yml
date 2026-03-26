@@ -8,62 +8,108 @@ on:
 permissions:
   contents: write
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  release:
-    name: Build and Release
+  build-linux:
+    name: Linux (x86_64)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Rust
         uses: dtolnay/rust-action@stable
-
-      - name: Cache cargo index
+      - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: "minimax-cli-release"
+          shared-key: "minimax-cli-linux"
           cache-targets: false
-
-      - name: Build release
+      - name: Build GNU
+        run: cargo build --release --locked
+      - name: Package GNU
         run: |
-          cargo build --release --locked
           mkdir -p artifacts
-          cp target/release/minimax artifacts/
-          tar czf minimax-cli-x86_64-unknown-linux-gnu.tar.gz -C artifacts minimax
-
-      - name: Create Release
+          cp target/release/minimax artifacts/minimax-linux-x86_64
+          tar czf minimax-cli-x86_64-unknown-linux-gnu.tar.gz -C artifacts minimax-linux-x86_64
+      - name: Build MUSL
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          cargo build --release --locked --target x86_64-unknown-linux-musl
+          cp target/x86_64-unknown-linux-musl/release/minimax artifacts/minimax-linux-x86_64-musl
+          tar czf minimax-cli-x86_64-unknown-linux-musl.tar.gz -C artifacts minimax-linux-x86_64-musl
+      - name: Upload Linux Assets
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/minimax
             minimax-cli-x86_64-unknown-linux-gnu.tar.gz
+            minimax-cli-x86_64-unknown-linux-musl.tar.gz
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  release-musl:
-    name: Build Portable Linux
-    runs-on: ubuntu-latest
+  build-windows:
+    name: Windows (x86_64)
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Rust
         uses: dtolnay/rust-action@stable
-
-      - name: Build static release
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "minimax-cli-windows"
+          cache-targets: false
+      - name: Build
+        run: cargo build --release --locked --target x86_64-pc-windows-msvc
+      - name: Package
+        shell: bash
         run: |
-          rustup target add x86_64-unknown-linux-musl
-          cargo build --release --locked --target x86_64-unknown-linux-musl
           mkdir -p artifacts
-          cp target/x86_64-unknown-linux-musl/release/minimax artifacts/
-          tar czf minimax-cli-x86_64-unknown-linux-musl.tar.gz -C artifacts minimax
-
-      - name: Upload Release Asset
+          cp target/x86_64-pc-windows-msvc/release/minimax.exe artifacts/minimax-windows-x86_64.exe
+          powershell -Command "Compress-Archive -Path artifacts/minimax-windows-x86_64.exe -DestinationPath minimax-cli-x86_64-pc-windows-msvc.zip -Force"
+      - name: Upload Windows Asset
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            minimax-cli-x86_64-unknown-linux-musl.tar.gz
+            minimax-cli-x86_64-pc-windows-msvc.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    name: macOS (Universal)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "minimax-cli-macos"
+          cache-targets: false
+      - name: Build x86_64
+        run: cargo build --release --locked --target x86_64-apple-darwin
+      - name: Package x86_64
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp target/x86_64-apple-darwin/release/minimax artifacts/minimax-macos-x86_64
+          tar czf minimax-cli-x86_64-apple-darwin.tar.gz -C artifacts minimax-macos-x86_64
+      - name: Build ARM64
+        run: |
+          rustup target add aarch64-apple-darwin
+          cargo build --release --locked --target aarch64-apple-darwin
+          cp target/aarch64-apple-darwin/release/minimax artifacts/minimax-macos-arm64
+          tar czf minimax-cli-aarch64-apple-darwin.tar.gz -C artifacts minimax-macos-arm64
+      - name: Upload macOS Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            minimax-cli-x86_64-apple-darwin.tar.gz
+            minimax-cli-aarch64-apple-darwin.tar.gz
           draft: false
           prerelease: false
         env:
