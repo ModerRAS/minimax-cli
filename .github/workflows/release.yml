@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Cache cargo index
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "minimax-cli-release"
+          cache-targets: false
+
+      - name: Build release
+        run: |
+          cargo build --release --locked
+          mkdir -p artifacts
+          cp target/release/minimax artifacts/
+          tar czf minimax-cli-x86_64-unknown-linux-gnu.tar.gz -C artifacts minimax
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/minimax
+            minimax-cli-x86_64-unknown-linux-gnu.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-musl:
+    name: Build Portable Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Build static release
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          cargo build --release --locked --target x86_64-unknown-linux-musl
+          mkdir -p artifacts
+          cp target/x86_64-unknown-linux-musl/release/minimax artifacts/
+          tar czf minimax-cli-x86_64-unknown-linux-musl.tar.gz -C artifacts minimax
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            minimax-cli-x86_64-unknown-linux-musl.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

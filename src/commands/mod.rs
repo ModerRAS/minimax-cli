@@ -1,0 +1,10 @@
+pub mod text_to_audio;
+pub mod list_voices;
+pub mod voice_clone;
+pub mod voice_design;
+pub mod text_to_image;
+pub mod generate_video;
+pub mod query_task;
+pub mod download_task;
+pub mod list_tasks;
+pub mod music_generation;
