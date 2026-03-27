@@ -44,7 +44,7 @@ url = "2.5"
 rpassword = "5"
 
 # Secure storage
-keyring = { version = "3", features = ["linux-native"] }
+keyring = "3"
 
 # Config file
 toml = "0.8"

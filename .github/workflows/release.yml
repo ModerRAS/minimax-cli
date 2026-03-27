@@ -27,12 +27,12 @@ jobs:
       - name: Build
         run: cargo build --release --locked
       - name: Rename
-        run: cp target/release/minimax minimax-linux-x86_64
+        run: cp target/release/minimax minimax-${GITHUB_REF_NAME#v}-linux-x86_64
       - name: Upload
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            minimax-linux-x86_64
+            minimax-${GITHUB_REF_NAME#v}-linux-x86_64
           draft: false
           prerelease: false
         env:
@@ -53,12 +53,13 @@ jobs:
       - name: Build
         run: cargo build --release --locked --target x86_64-pc-windows-msvc
       - name: Rename
-        run: cp target/x86_64-pc-windows-msvc/release/minimax.exe minimax-windows-x86_64.exe
+        shell: bash
+        run: cp target/x86_64-pc-windows-msvc/release/minimax.exe minimax-${GITHUB_REF_NAME#v}-windows-x86_64.exe
       - name: Upload
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            minimax-windows-x86_64.exe
+            minimax-${GITHUB_REF_NAME#v}-windows-x86_64.exe
           draft: false
           prerelease: false
         env:
@@ -81,18 +82,18 @@ jobs:
           rustup target add x86_64-apple-darwin
           cargo build --release --locked --target x86_64-apple-darwin
       - name: Rename x86_64
-        run: cp target/x86_64-apple-darwin/release/minimax minimax-macos-x86_64
+        run: cp target/x86_64-apple-darwin/release/minimax minimax-${GITHUB_REF_NAME#v}-macos-x86_64
       - name: Build ARM64
         run: |
           rustup target add aarch64-apple-darwin
           cargo build --release --locked --target aarch64-apple-darwin
-          cp target/aarch64-apple-darwin/release/minimax minimax-macos-arm64
+          cp target/aarch64-apple-darwin/release/minimax minimax-${GITHUB_REF_NAME#v}-macos-arm64
       - name: Upload
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            minimax-macos-x86_64
-            minimax-macos-arm64
+            minimax-${GITHUB_REF_NAME#v}-macos-x86_64
+            minimax-${GITHUB_REF_NAME#v}-macos-arm64
           draft: false
           prerelease: false
         env:
