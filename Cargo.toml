@@ -44,7 +44,7 @@ url = "2.5"
 rpassword = "5"
 
 # Secure storage
-keyring = "3"
+keyring = { version = "3", features = ["windows-native"] }
 
 # Config file
 toml = "0.8"
