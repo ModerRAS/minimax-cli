@@ -213,6 +213,14 @@ pub enum ConfigCommands {
 
 pub async fn run() -> Result<()> {
     let cli = Cli::parse();
+
+    match &cli.command {
+        Commands::Config { command } => {
+            return crate::commands::config::run(command).await;
+        }
+        _ => {}
+    }
+
     let config = crate::config::Config::load()?;
 
     match cli.command {
@@ -354,6 +362,7 @@ pub async fn run() -> Result<()> {
             )
             .await
         }
-        Commands::Config { command } => crate::commands::config::run(&command).await,
+        // This is unreachable because we return early for Config commands above
+        Commands::Config { .. } => unreachable!(),
     }
 }
