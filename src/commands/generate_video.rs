@@ -20,6 +20,24 @@ pub async fn run(
     let client = MinimaxClient::new(config.api_key.clone(), config.api_host.clone());
     let db = Database::new(&config.db_path)?;
 
+    if duration.is_some() && model != "MiniMax-Hailuo-02" {
+        anyhow::bail!(
+            "The --duration option is only supported with MiniMax-Hailuo-02 model.\n\
+             Current model: {}\n\
+             Use --model MiniMax-Hailuo-02 if you need custom duration.",
+            model
+        );
+    }
+
+    if resolution.is_some() && model != "MiniMax-Hailuo-02" {
+        anyhow::bail!(
+            "The --resolution option is only supported with MiniMax-Hailuo-02 model.\n\
+             Current model: {}\n\
+             Use --model MiniMax-Hailuo-02 if you need custom resolution.",
+            model
+        );
+    }
+
     let req = VideoGenerationRequest {
         model: model.to_string(),
         prompt: prompt.to_string(),
