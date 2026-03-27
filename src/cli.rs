@@ -214,11 +214,8 @@ pub enum ConfigCommands {
 pub async fn run() -> Result<()> {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Config { command } => {
-            return crate::commands::config::run(command).await;
-        }
-        _ => {}
+    if let Commands::Config { command } = &cli.command {
+        return crate::commands::config::run(command).await;
     }
 
     let config = crate::config::Config::load()?;
