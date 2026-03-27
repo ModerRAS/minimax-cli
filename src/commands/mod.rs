@@ -8,3 +8,4 @@ pub mod query_task;
 pub mod download_task;
 pub mod list_tasks;
 pub mod music_generation;
+pub mod config;

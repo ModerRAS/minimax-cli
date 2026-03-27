@@ -25,19 +25,37 @@ cargo build --release
 
 ## Configuration
 
-### Environment Variables
+### Quick Setup
 
-Create a `.env` file or set environment variables:
+Run the interactive configuration wizard:
 
 ```bash
-# Required
-MINIMAX_API_KEY=your-api-key-here
-MINIMAX_API_HOST=https://api.minimax.io  # or https://api.minimaxi.com for China
-
-# Optional
-MINIMAX_DB_PATH=~/.minimax-cli/tasks.db  # SQLite database path
-MINIMAX_OUTPUT_DIR=./downloads            # Default output directory
+minimax config init
 ```
+
+This will guide you through setting up your API key and selecting your region.
+
+### Manual Configuration
+
+```bash
+# Set your API key (stored securely in system keyring)
+minimax config set-api-key your-api-key-here
+
+# Set API host
+minimax config set-api-host https://api.minimax.io  # or https://api.minimaxi.com for China
+
+# View current configuration
+minimax config show
+```
+
+### Config File Location
+
+Configuration is stored in:
+- **Linux**: `~/.config/minimax-cli/config.toml`
+- **macOS**: `~/Library/Application Support/minimax-cli/config.toml`
+- **Windows**: `%APPDATA%/minimax-cli/config.toml`
+
+Your API key is stored securely in your system's keyring/credential manager.
 
 ### API Keys
 

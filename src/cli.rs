@@ -186,11 +186,34 @@ pub enum Commands {
         #[arg(long)]
         output_dir: Option<PathBuf>,
     },
+    /// Manage configuration
+    Config {
+        #[command(subcommand)]
+        command: ConfigCommands,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum ConfigCommands {
+    /// Set the API key
+    SetApiKey {
+        #[arg(long)]
+        key: String,
+    },
+    /// Set the API host
+    SetApiHost {
+        #[arg(long, default_value = "https://api.minimax.io")]
+        host: String,
+    },
+    /// Show current configuration
+    Show,
+    /// Interactive configuration wizard
+    Init,
 }
 
 pub async fn run() -> Result<()> {
     let cli = Cli::parse();
-    let config = crate::config::Config::from_env()?;
+    let config = crate::config::Config::load()?;
     
     match cli.command {
         Commands::TextToAudio { text, voice_id, model, speed, vol, pitch, emotion, sample_rate, bitrate, channel, format, language_boost, output_dir } => {
@@ -222,6 +245,9 @@ pub async fn run() -> Result<()> {
         }
         Commands::VoiceDesign { prompt, preview_text, voice_id, output_dir } => {
             crate::commands::voice_design::run(&config, &prompt, &preview_text, voice_id.as_deref(), output_dir).await
+        }
+        Commands::Config { command } => {
+            crate::commands::config::run(&command).await
         }
     }
 }

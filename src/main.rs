@@ -1,7 +1,9 @@
 mod cli;
 mod config;
+mod config_file;
 mod commands;
 mod core;
+mod keyring;
 
 use clap::Parser;
 use log::info;
