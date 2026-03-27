@@ -214,40 +214,146 @@ pub enum ConfigCommands {
 pub async fn run() -> Result<()> {
     let cli = Cli::parse();
     let config = crate::config::Config::load()?;
-    
+
     match cli.command {
-        Commands::TextToAudio { text, voice_id, model, speed, vol, pitch, emotion, sample_rate, bitrate, channel, format, language_boost, output_dir } => {
-            crate::commands::text_to_audio::run(&config, &text, &voice_id, &model, speed, vol, pitch, &emotion, sample_rate, bitrate, channel, &format, &language_boost, output_dir).await
+        Commands::TextToAudio {
+            text,
+            voice_id,
+            model,
+            speed,
+            vol,
+            pitch,
+            emotion,
+            sample_rate,
+            bitrate,
+            channel,
+            format,
+            language_boost,
+            output_dir,
+        } => {
+            crate::commands::text_to_audio::run(
+                &config,
+                &text,
+                &voice_id,
+                &model,
+                speed,
+                vol,
+                pitch,
+                &emotion,
+                sample_rate,
+                bitrate,
+                channel,
+                &format,
+                &language_boost,
+                output_dir,
+            )
+            .await
         }
         Commands::ListVoices { voice_type } => {
             crate::commands::list_voices::run(&config, &voice_type).await
         }
-        Commands::VoiceClone { voice_id, file, text, is_url, output_dir } => {
-            crate::commands::voice_clone::run(&config, &voice_id, &file, text.as_deref(), is_url, output_dir).await
+        Commands::VoiceClone {
+            voice_id,
+            file,
+            text,
+            is_url,
+            output_dir,
+        } => {
+            crate::commands::voice_clone::run(
+                &config,
+                &voice_id,
+                &file,
+                text.as_deref(),
+                is_url,
+                output_dir,
+            )
+            .await
         }
-        Commands::GenerateVideo { prompt, model, first_frame_image, duration, resolution, async_mode, output_dir } => {
-            crate::commands::generate_video::run(&config, &prompt, &model, first_frame_image, duration, resolution, async_mode, output_dir).await
+        Commands::GenerateVideo {
+            prompt,
+            model,
+            first_frame_image,
+            duration,
+            resolution,
+            async_mode,
+            output_dir,
+        } => {
+            crate::commands::generate_video::run(
+                &config,
+                &prompt,
+                &model,
+                first_frame_image,
+                duration,
+                resolution,
+                async_mode,
+                output_dir,
+            )
+            .await
         }
-        Commands::QueryTask { task_id, output_dir } => {
-            crate::commands::query_task::run(&config, &task_id, output_dir).await
-        }
-        Commands::DownloadTask { task_id, output_dir } => {
-            crate::commands::download_task::run(&config, &task_id, output_dir).await
-        }
+        Commands::QueryTask {
+            task_id,
+            output_dir,
+        } => crate::commands::query_task::run(&config, &task_id, output_dir).await,
+        Commands::DownloadTask {
+            task_id,
+            output_dir,
+        } => crate::commands::download_task::run(&config, &task_id, output_dir).await,
         Commands::ListTasks { status, limit } => {
             crate::commands::list_tasks::run(&config, status.as_deref(), limit).await
         }
-        Commands::TextToImage { prompt, model, aspect_ratio, n, prompt_optimizer, output_dir } => {
-            crate::commands::text_to_image::run(&config, &prompt, &model, &aspect_ratio, n, prompt_optimizer, output_dir).await
+        Commands::TextToImage {
+            prompt,
+            model,
+            aspect_ratio,
+            n,
+            prompt_optimizer,
+            output_dir,
+        } => {
+            crate::commands::text_to_image::run(
+                &config,
+                &prompt,
+                &model,
+                &aspect_ratio,
+                n,
+                prompt_optimizer,
+                output_dir,
+            )
+            .await
         }
-        Commands::MusicGeneration { prompt, lyrics, format, sample_rate, bitrate, output_dir } => {
-            crate::commands::music_generation::run(&config, &prompt, &lyrics, &format, sample_rate, bitrate, output_dir).await
+        Commands::MusicGeneration {
+            prompt,
+            lyrics,
+            format,
+            sample_rate,
+            bitrate,
+            output_dir,
+        } => {
+            crate::commands::music_generation::run(
+                &config,
+                &prompt,
+                &lyrics,
+                &format,
+                sample_rate,
+                bitrate,
+                output_dir,
+            )
+            .await
         }
-        Commands::VoiceDesign { prompt, preview_text, voice_id, output_dir } => {
-            crate::commands::voice_design::run(&config, &prompt, &preview_text, voice_id.as_deref(), output_dir).await
+        Commands::VoiceDesign {
+            prompt,
+            preview_text,
+            voice_id,
+            output_dir,
+        } => {
+            crate::commands::voice_design::run(
+                &config,
+                &prompt,
+                &preview_text,
+                voice_id.as_deref(),
+                output_dir,
+            )
+            .await
         }
-        Commands::Config { command } => {
-            crate::commands::config::run(&command).await
-        }
+        Commands::Config { command } => crate::commands::config::run(&command).await,
     }
 }

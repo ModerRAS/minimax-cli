@@ -1,7 +1,7 @@
 mod cli;
+mod commands;
 mod config;
 mod config_file;
-mod commands;
 mod core;
 mod keyring;
 
