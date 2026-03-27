@@ -226,7 +226,12 @@ impl MinimaxClient {
 
     // Download file bytes
     pub fn download_file(&self, url: &str) -> Result<Vec<u8>, MinimaxError> {
-        let response = self.client.get(url).send()?;
+        let full_url = if url.starts_with("http://") || url.starts_with("https://") {
+            url.to_string()
+        } else {
+            format!("{}{}", self.api_host, url)
+        };
+        let response = self.client.get(&full_url).send()?;
         Ok(response.bytes()?.to_vec())
     }
 }
