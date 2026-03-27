@@ -71,8 +71,10 @@ pub async fn run(command: &crate::cli::ConfigCommands) -> Result<()> {
             println!("\n✓ API key stored securely");
 
             // Save config file
-            let mut config = ConfigFile::default();
-            config.api_host = host.to_string();
+            let config = ConfigFile {
+                api_host: host.to_string(),
+                ..Default::default()
+            };
             config.save()?;
             println!("✓ Config file saved");
 

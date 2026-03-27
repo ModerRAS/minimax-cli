@@ -3,6 +3,7 @@ use crate::core::api_client::MinimaxClient;
 use crate::core::models::{AudioSetting, TextToAudioRequest, VoiceSetting};
 use std::path::PathBuf;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run(
     config: &Config,
     text: &str,

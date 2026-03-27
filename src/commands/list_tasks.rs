@@ -12,8 +12,8 @@ pub async fn run(config: &Config, status: Option<&str>, limit: i32) -> anyhow::R
     }
 
     println!(
-        "{:<40} {:<10} {:<12} {}",
-        "Task ID", "Type", "Status", "Created"
+        "{:<40} {:<10} {:<12} Created",
+        "Task ID", "Type", "Status"
     );
     println!("{}", "-".repeat(80));
 

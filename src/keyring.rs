@@ -1,3 +1,5 @@
+#![allow(clippy::dead_code)]
+
 //! Secure storage of API key using system keyring/credential store.
 //!
 //! Supports: Linux (Secret Service), macOS (Keychain), Windows (Credential Manager)

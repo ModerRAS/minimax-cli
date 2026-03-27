@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run(
     config: &Config,
     prompt: &str,
