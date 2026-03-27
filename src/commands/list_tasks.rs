@@ -11,10 +11,7 @@ pub async fn run(config: &Config, status: Option<&str>, limit: i32) -> anyhow::R
         return Ok(());
     }
 
-    println!(
-        "{:<40} {:<10} {:<12} Created",
-        "Task ID", "Type", "Status"
-    );
+    println!("{:<40} {:<10} {:<12} Created", "Task ID", "Type", "Status");
     println!("{}", "-".repeat(80));
 
     for task in tasks {
