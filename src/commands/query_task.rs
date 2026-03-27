@@ -32,16 +32,31 @@ pub async fn run(
                 );
             }
             "Success" => {
-                let file_id = response.file_id.unwrap_or_default();
-                let download_url = response
-                    .download_url
-                    .unwrap_or_else(|| client.get_file(&file_id).unwrap_or_default());
+                let file_id = response.get_file_id().unwrap_or_default();
+                
+                let download_url = if let Some(url) = &response.download_url {
+                    url.clone()
+                } else if !file_id.is_empty() {
+                    match client.get_file(&file_id) {
+                        Ok(url) => url,
+                        Err(e) => {
+                            eprintln!("Warning: Could not get download URL: {}", e);
+                            String::new()
+                        }
+                    }
+                } else {
+                    String::new()
+                };
 
                 db.update_task_success(task_id, &file_id, &download_url)?;
 
                 println!("\n✅ Task completed!");
                 println!("File ID: {}", file_id);
-                println!("Download URL: {}", download_url);
+                if !download_url.is_empty() {
+                    println!("Download URL: {}", download_url);
+                } else {
+                    println!("Download URL: (not available)");
+                }
 
                 if let Some(ref dir) = output_dir {
                     println!("\nAuto-downloading to: {}", dir.display());

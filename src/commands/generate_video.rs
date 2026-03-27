@@ -56,12 +56,11 @@ pub async fn run(
             thread::sleep(Duration::from_secs(retry_interval));
 
             let status_response = client.query_video(&task_id)?;
-            let status = status_response.status;
 
-            if status == "fail" {
+            if status_response.status == "fail" {
                 anyhow::bail!("Video generation failed for task_id: {}", task_id);
-            } else if status == "success" {
-                if let Some(fid) = status_response.file_id {
+            } else if status_response.status == "success" {
+                if let Some(fid) = status_response.get_file_id() {
                     break fid;
                 }
                 anyhow::bail!(

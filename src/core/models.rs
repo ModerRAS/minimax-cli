@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-
-/// Base response wrapper for all API responses
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseResponse<T> {
     pub base_resp: Option<BaseResp>,
@@ -151,11 +149,22 @@ pub struct VideoGenerationData {
 }
 
 /// Query video status response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct QueryVideoResponse {
     pub status: String,
-    pub file_id: Option<String>,
+    #[serde(alias = "file_id")]
+    pub file_id: serde_json::Value,
     pub download_url: Option<String>,
+}
+
+impl QueryVideoResponse {
+    pub fn get_file_id(&self) -> Option<String> {
+        match &self.file_id {
+            serde_json::Value::String(s) if !s.is_empty() => Some(s.clone()),
+            serde_json::Value::Number(n) => Some(n.to_string()),
+            _ => None,
+        }
+    }
 }
 
 // ============== Image Generation ==============
@@ -245,8 +254,21 @@ pub struct FileRetrieveResponse {
 /// File detail information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileDetail {
+    #[serde(alias = "file_id", deserialize_with = "deserialize_file_id")]
     pub file_id: String,
     pub download_url: Option<String>,
+}
+
+fn deserialize_file_id<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = serde_json::Value::deserialize(deserializer)?;
+    match value {
+        serde_json::Value::String(s) => Ok(s),
+        serde_json::Value::Number(n) => Ok(n.to_string()),
+        _ => Err(serde::de::Error::custom("expected string or number")),
+    }
 }
 
 // ============== Task Storage Model (SQLite) ==============
