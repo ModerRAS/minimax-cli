@@ -382,8 +382,6 @@ pub async fn run() -> Result<()> {
 }
 
 fn print_all_help() {
-    use clap::CommandFactory;
-    
     let main_help = r#"
 ═══════════════════════════════════════════════════════════════
                       MINIMAX CLI HELP
