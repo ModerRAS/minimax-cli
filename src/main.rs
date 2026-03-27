@@ -5,7 +5,6 @@ mod config_file;
 mod core;
 mod keyring;
 
-use clap::Parser;
 use log::info;
 
 #[tokio::main]
