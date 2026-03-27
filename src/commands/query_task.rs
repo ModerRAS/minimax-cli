@@ -24,8 +24,8 @@ pub async fn run(
         let response = client.query_video(task_id)?;
 
         match response.status.as_str() {
-            "Processing" | "pending" => {
-                println!("\nTask is still processing...");
+            "Pending" | "pending" | "Processing" | "Preparing" | "Queueing" | "InQueue" => {
+                println!("\nTask is still processing (status: {})...", response.status);
                 println!(
                     "Check again later with: minimax query-task --task-id {}",
                     task_id

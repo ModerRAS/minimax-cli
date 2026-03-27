@@ -83,16 +83,20 @@ pub enum Commands {
         /// The prompt to generate video from
         #[arg(long)]
         prompt: String,
-        /// Model to use (T2V-01, MiniMax-Hailuo-02, etc.)
+        /// Model to use
+        /// Available models: MiniMax-Hailuo-2.3 (default), T2V-01, MiniMax-Hailuo-02, I2V-01
+        /// - T2V-01: Text-to-Video, supports 6s duration
+        /// - MiniMax-Hailuo-02: Latest model, supports 6s/10s duration and 768P/1080P resolution
+        /// - I2V-01: Image-to-Video, requires --first-frame-image
         #[arg(long, default_value = "MiniMax-Hailuo-2.3")]
         model: String,
-        /// First frame image (for I2V models)
+        /// First frame image URL or local path (required for I2V-01 model)
         #[arg(long)]
         first_frame_image: Option<String>,
-        /// Duration (6 or 10 seconds, for Hailuo-02)
+        /// Video duration in seconds (6 or 10). Only supported by MiniMax-Hailuo-02 model
         #[arg(long)]
         duration: Option<i32>,
-        /// Resolution (768P or 1080P, for Hailuo-02)
+        /// Video resolution. Options: 768P, 1080P. Only supported by MiniMax-Hailuo-02 model
         #[arg(long)]
         resolution: Option<String>,
         /// Async mode: if true, return task_id immediately; if false, wait for completion
@@ -122,7 +126,7 @@ pub enum Commands {
     },
     /// List all tasks
     ListTasks {
-        /// Filter by status (pending, processing, success, fail)
+        /// Filter by status (pending, preparing, queueing, processing, success, fail)
         #[arg(long)]
         status: Option<String>,
         /// Maximum number of tasks to show
