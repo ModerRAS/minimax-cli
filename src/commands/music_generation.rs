@@ -8,11 +8,12 @@ pub async fn run(
     prompt: &str,
     lyrics: &str,
     format: &str,
+    sample_rate: i32,
+    bitrate: i32,
     output_dir: Option<PathBuf>,
 ) -> anyhow::Result<()> {
     let client = MinimaxClient::new(config.api_key.clone(), config.api_host.clone());
     
-    // Parse lyrics with \n handling
     let lyrics_parsed = lyrics.replace("\\n", "\n");
     
     let req = MusicGenerationRequest {
@@ -20,8 +21,8 @@ pub async fn run(
         prompt: prompt.to_string(),
         lyrics: lyrics_parsed,
         audio_setting: Some(MusicAudioSetting {
-            sample_rate: 32000,
-            bitrate: 128000,
+            sample_rate,
+            bitrate,
             format: format.to_string(),
         }),
         output_format: None,

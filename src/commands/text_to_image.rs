@@ -9,6 +9,7 @@ pub async fn run(
     model: &str,
     aspect_ratio: &str,
     n: i32,
+    prompt_optimizer: bool,
     output_dir: Option<PathBuf>,
 ) -> anyhow::Result<()> {
     let client = MinimaxClient::new(config.api_key.clone(), config.api_host.clone());
@@ -18,7 +19,7 @@ pub async fn run(
         prompt: prompt.to_string(),
         aspect_ratio: aspect_ratio.to_string(),
         n,
-        prompt_optimizer: true,
+        prompt_optimizer,
     };
     
     let image_urls = client.text_to_image(&req)?;

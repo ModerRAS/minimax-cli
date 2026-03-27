@@ -30,11 +30,12 @@ pub async fn run(
     };
     
     // Step 2: Clone voice
+    // Only set model when text is provided (matching MCP behavior)
     let req = VoiceCloneRequest {
         file_id: file_id.clone(),
         voice_id: voice_id.to_string(),
         text: text.map(|s| s.to_string()),
-        model: Some("speech-2.6-hd".to_string()),
+        model: text.map(|_| "speech-2.6-hd".to_string()),
     };
     
     let result = client.voice_clone(&req)?;

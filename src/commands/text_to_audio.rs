@@ -7,28 +7,37 @@ pub async fn run(
     config: &Config,
     text: &str,
     voice_id: &str,
+    model: &str,
     speed: f32,
+    vol: f32,
+    pitch: i32,
+    emotion: &str,
+    sample_rate: i32,
+    bitrate: i32,
+    channel: i32,
+    format: &str,
+    language_boost: &str,
     output_dir: Option<PathBuf>,
 ) -> anyhow::Result<()> {
     let client = MinimaxClient::new(config.api_key.clone(), config.api_host.clone());
     
     let req = TextToAudioRequest {
-        model: "speech-2.6-hd".to_string(),
+        model: model.to_string(),
         text: text.to_string(),
         voice_setting: VoiceSetting {
             voice_id: voice_id.to_string(),
             speed,
-            vol: 1.0,
-            pitch: 0,
-            emotion: "happy".to_string(),
+            vol,
+            pitch,
+            emotion: emotion.to_string(),
         },
         audio_setting: AudioSetting {
-            sample_rate: 32000,
-            bitrate: 128000,
-            format: "mp3".to_string(),
-            channel: 1,
+            sample_rate,
+            bitrate,
+            format: format.to_string(),
+            channel,
         },
-        language_boost: Some("auto".to_string()),
+        language_boost: Some(language_boost.to_string()),
         output_format: None,
     };
     
@@ -40,9 +49,11 @@ pub async fn run(
     let audio_bytes = hex::decode(&audio_hex)
         .map_err(|e| anyhow::anyhow!("Failed to decode audio hex: {}", e))?;
     
-    let filename = format!("t2a_{}_{}.mp3", 
+    let extension = if format == "pcm" { "pcm" } else if format == "flac" { "flac" } else { "mp3" };
+    let filename = format!("t2a_{}_{}.{}", 
         &text.chars().take(10).collect::<String>().replace(' ', "_"),
-        chrono::Utc::now().format("%Y%m%d_%H%M%S")
+        chrono::Utc::now().format("%Y%m%d_%H%M%S"),
+        extension
     );
     
     let file_path = output_path.join(&filename);

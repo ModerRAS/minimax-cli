@@ -1,12 +1,12 @@
+use std::path::PathBuf;
 use crate::config::Config;
 use crate::core::api_client::MinimaxClient;
 use crate::core::db::Database;
 
-pub async fn run(config: &Config, task_id: &str) -> anyhow::Result<()> {
+pub async fn run(config: &Config, task_id: &str, output_dir: Option<PathBuf>) -> anyhow::Result<()> {
     let client = MinimaxClient::new(config.api_key.clone(), config.api_host.clone());
     let db = Database::new(&config.db_path)?;
     
-    // Get task from database
     let task = db.get_task(task_id)?
         .ok_or_else(|| anyhow::anyhow!("Task not found: {}", task_id))?;
     
@@ -16,7 +16,6 @@ pub async fn run(config: &Config, task_id: &str) -> anyhow::Result<()> {
     println!("Created: {}", task.created_at);
     
     if task.status == "pending" || task.status == "processing" {
-        // Query API for current status
         let response = client.query_video(task_id)?;
         
         match response.status.as_str() {
@@ -30,13 +29,23 @@ pub async fn run(config: &Config, task_id: &str) -> anyhow::Result<()> {
                     client.get_file(&file_id).unwrap_or_default()
                 });
                 
-                // Update database
                 db.update_task_success(task_id, &file_id, &download_url)?;
                 
                 println!("\n✅ Task completed!");
                 println!("File ID: {}", file_id);
                 println!("Download URL: {}", download_url);
-                println!("\nDownload with: minimax download-task --task-id {} --output-dir ./downloads", task_id);
+                
+                if let Some(ref dir) = output_dir {
+                    println!("\nAuto-downloading to: {}", dir.display());
+                    let bytes = client.download_file(&download_url)?;
+                    std::fs::create_dir_all(dir)?;
+                    let filename = format!("{}.mp4", task_id);
+                    let file_path = dir.join(&filename);
+                    std::fs::write(&file_path, bytes)?;
+                    println!("Saved to: {}", file_path.display());
+                } else {
+                    println!("\nDownload with: minimax download-task --task-id {} --output-dir ./downloads", task_id);
+                }
             }
             "Fail" => {
                 db.update_task_failed(task_id, "Video generation failed")?;
@@ -50,8 +59,19 @@ pub async fn run(config: &Config, task_id: &str) -> anyhow::Result<()> {
         println!("\n✅ Task already completed!");
         if let Some(url) = &task.download_url {
             println!("Download URL: {}", url);
+            
+            if let Some(ref dir) = output_dir {
+                println!("\nAuto-downloading to: {}", dir.display());
+                let bytes = client.download_file(url)?;
+                std::fs::create_dir_all(dir)?;
+                let filename = format!("{}.mp4", task_id);
+                let file_path = dir.join(&filename);
+                std::fs::write(&file_path, bytes)?;
+                println!("Saved to: {}", file_path.display());
+            } else {
+                println!("\nDownload with: minimax download-task --task-id {} --output-dir ./downloads", task_id);
+            }
         }
-        println!("\nDownload with: minimax download-task --task-id {} --output-dir ./downloads", task_id);
     } else if task.status == "fail" {
         println!("\n❌ Task failed!");
         if let Some(err) = &task.error_msg {

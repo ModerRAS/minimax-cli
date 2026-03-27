@@ -20,9 +20,36 @@ pub enum Commands {
         /// Voice ID to use (default: female-shaonv)
         #[arg(long, default_value = "female-shaonv")]
         voice_id: String,
+        /// Model to use (speech-2.6-hd)
+        #[arg(long, default_value = "speech-2.6-hd")]
+        model: String,
         /// Speech speed (0.5-2.0, default: 1.0)
         #[arg(long, default_value_t = 1.0)]
         speed: f32,
+        /// Volume (0-10, default: 1.0)
+        #[arg(long, default_value_t = 1.0)]
+        vol: f32,
+        /// Pitch (-12 to 12, default: 0)
+        #[arg(long, default_value_t = 0)]
+        pitch: i32,
+        /// Emotion (happy, sad, angry, fearful, disgusted, surprised, neutral)
+        #[arg(long, default_value = "happy")]
+        emotion: String,
+        /// Sample rate (8000, 16000, 22050, 24000, 32000, 44100)
+        #[arg(long, default_value_t = 32000)]
+        sample_rate: i32,
+        /// Bitrate (32000, 64000, 128000, 256000)
+        #[arg(long, default_value_t = 128000)]
+        bitrate: i32,
+        /// Channel (1 or 2)
+        #[arg(long, default_value_t = 1)]
+        channel: i32,
+        /// Format (pcm, mp3, flac)
+        #[arg(long, default_value = "mp3")]
+        format: String,
+        /// Language boost (Chinese, Chinese,Yue, English, Arabic, Russian, Spanish, French, Portuguese, German, Turkish, Dutch, Ukrainian, Vietnamese, Indonesian, Japanese, Italian, Korean, Thai, Polish, Romanian, Greek, Czech, Finnish, Hindi, auto)
+        #[arg(long, default_value = "auto")]
+        language_boost: String,
         /// Output directory
         #[arg(long)]
         output_dir: Option<PathBuf>,
@@ -68,12 +95,21 @@ pub enum Commands {
         /// Resolution (768P or 1080P, for Hailuo-02)
         #[arg(long)]
         resolution: Option<String>,
+        /// Async mode: if true, return task_id immediately; if false, wait for completion
+        #[arg(long, default_value_t = true)]
+        async_mode: bool,
+        /// Output directory
+        #[arg(long)]
+        output_dir: Option<PathBuf>,
     },
     /// Query task status
     QueryTask {
         /// Task ID to query
         #[arg(long)]
         task_id: String,
+        /// Output directory (if provided, will auto-download completed video to this directory)
+        #[arg(long)]
+        output_dir: Option<PathBuf>,
     },
     /// Download completed task
     DownloadTask {
@@ -101,12 +137,15 @@ pub enum Commands {
         /// Model to use (image-01)
         #[arg(long, default_value = "image-01")]
         model: String,
-        /// Aspect ratio (1:1, 16:9, 4:3, etc.)
+        /// Aspect ratio (1:1, 16:9, 4:3, 3:2, 2:3, 3:4, 9:16, 21:9)
         #[arg(long, default_value = "1:1")]
         aspect_ratio: String,
         /// Number of images to generate (1-9)
         #[arg(long, default_value_t = 1)]
         n: i32,
+        /// Enable prompt optimizer (default: true)
+        #[arg(long, default_value_t = true)]
+        prompt_optimizer: bool,
         /// Output directory
         #[arg(long)]
         output_dir: Option<PathBuf>,
@@ -122,6 +161,12 @@ pub enum Commands {
         /// Output format (mp3, wav, pcm)
         #[arg(long, default_value = "mp3")]
         format: String,
+        /// Sample rate (16000, 24000, 32000, 44100)
+        #[arg(long, default_value_t = 32000)]
+        sample_rate: i32,
+        /// Bitrate (32000, 64000, 128000, 256000)
+        #[arg(long, default_value_t = 128000)]
+        bitrate: i32,
         /// Output directory
         #[arg(long)]
         output_dir: Option<PathBuf>,
@@ -148,8 +193,8 @@ pub async fn run() -> Result<()> {
     let config = crate::config::Config::from_env()?;
     
     match cli.command {
-        Commands::TextToAudio { text, voice_id, speed, output_dir } => {
-            crate::commands::text_to_audio::run(&config, &text, &voice_id, speed, output_dir).await
+        Commands::TextToAudio { text, voice_id, model, speed, vol, pitch, emotion, sample_rate, bitrate, channel, format, language_boost, output_dir } => {
+            crate::commands::text_to_audio::run(&config, &text, &voice_id, &model, speed, vol, pitch, &emotion, sample_rate, bitrate, channel, &format, &language_boost, output_dir).await
         }
         Commands::ListVoices { voice_type } => {
             crate::commands::list_voices::run(&config, &voice_type).await
@@ -157,11 +202,11 @@ pub async fn run() -> Result<()> {
         Commands::VoiceClone { voice_id, file, text, is_url, output_dir } => {
             crate::commands::voice_clone::run(&config, &voice_id, &file, text.as_deref(), is_url, output_dir).await
         }
-        Commands::GenerateVideo { prompt, model, first_frame_image, duration, resolution } => {
-            crate::commands::generate_video::run(&config, &prompt, &model, first_frame_image, duration, resolution).await
+        Commands::GenerateVideo { prompt, model, first_frame_image, duration, resolution, async_mode, output_dir } => {
+            crate::commands::generate_video::run(&config, &prompt, &model, first_frame_image, duration, resolution, async_mode, output_dir).await
         }
-        Commands::QueryTask { task_id } => {
-            crate::commands::query_task::run(&config, &task_id).await
+        Commands::QueryTask { task_id, output_dir } => {
+            crate::commands::query_task::run(&config, &task_id, output_dir).await
         }
         Commands::DownloadTask { task_id, output_dir } => {
             crate::commands::download_task::run(&config, &task_id, output_dir).await
@@ -169,11 +214,11 @@ pub async fn run() -> Result<()> {
         Commands::ListTasks { status, limit } => {
             crate::commands::list_tasks::run(&config, status.as_deref(), limit).await
         }
-        Commands::TextToImage { prompt, model, aspect_ratio, n, output_dir } => {
-            crate::commands::text_to_image::run(&config, &prompt, &model, &aspect_ratio, n, output_dir).await
+        Commands::TextToImage { prompt, model, aspect_ratio, n, prompt_optimizer, output_dir } => {
+            crate::commands::text_to_image::run(&config, &prompt, &model, &aspect_ratio, n, prompt_optimizer, output_dir).await
         }
-        Commands::MusicGeneration { prompt, lyrics, format, output_dir } => {
-            crate::commands::music_generation::run(&config, &prompt, &lyrics, &format, output_dir).await
+        Commands::MusicGeneration { prompt, lyrics, format, sample_rate, bitrate, output_dir } => {
+            crate::commands::music_generation::run(&config, &prompt, &lyrics, &format, sample_rate, bitrate, output_dir).await
         }
         Commands::VoiceDesign { prompt, preview_text, voice_id, output_dir } => {
             crate::commands::voice_design::run(&config, &prompt, &preview_text, voice_id.as_deref(), output_dir).await
