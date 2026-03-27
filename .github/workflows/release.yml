@@ -12,9 +12,27 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  clippy:
+    name: Clippy Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "minimax-cli-clippy"
+          cache-targets: false
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings -A dead_code -A clippy::enum_variant_names
+
   build-linux:
     name: Linux (x86_64)
     runs-on: ubuntu-latest
+    needs: clippy
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
@@ -41,6 +59,7 @@ jobs:
   build-windows:
     name: Windows (x86_64)
     runs-on: windows-latest
+    needs: clippy
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
@@ -68,6 +87,7 @@ jobs:
   build-macos:
     name: macOS
     runs-on: macos-latest
+    needs: clippy
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
